@@ -24,7 +24,7 @@ contract FundToken is MintableToken {
 
     // @dev Simple constructer which allows for dynamic owner initiation
     // @param _owner Address which is set as the owner of the token
-    function FundToken(address _owner)
+    constructor(address _owner)
         public
     {
         owner = _owner;

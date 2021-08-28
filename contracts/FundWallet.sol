@@ -46,7 +46,7 @@ contract FundWallet is Ownable {
 
     // @dev Simple constructor which allows to specify a different owner then the msg.sender
     // @param  _owner Address which will be set to be the owner of this wallet
-    function FundWallet(address _owner)
+    constructor(address _owner)
         public
         notNull(_owner)
     {

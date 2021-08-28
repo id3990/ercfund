@@ -7,7 +7,7 @@ import "../FundOperator.sol";
 // @author ScJa
 contract FundOperatorMock is FundOperator {
 
-    function FundOperatorMock(uint256 _hotThreshold, uint256 _trustPartyThreshold, address[] _hotAccounts, address[] _trustPartyAccounts)
+    constructor(uint256 _hotThreshold, uint256 _trustPartyThreshold, address[] memory _hotAccounts, address[] memory _trustPartyAccounts)
         public
         FundOperator(_hotThreshold, _trustPartyThreshold, _hotAccounts, _trustPartyAccounts) {
     }

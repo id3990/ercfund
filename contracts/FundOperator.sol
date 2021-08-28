@@ -137,7 +137,7 @@ contract FundOperator {
     // @param _trustPartyThreshold Amount of signatures needed from trust parties for extraordinary actions
     // @param _hotAccounts Array of addresses of hot accounts
     // @param _trustPartyAccounts Array of addresses of trust party accounts
-    function FundOperator (uint256 _hotThreshold, uint256 _trustPartyThreshold, address[] _hotAccounts, address[] _trustPartyAccounts)
+    constructor (uint256 _hotThreshold, uint256 _trustPartyThreshold, address[] memory _hotAccounts, address[] memory _trustPartyAccounts)
         public
     {
         require(_hotAccounts.length <= 10 && _hotAccounts.length != 0);

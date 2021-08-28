@@ -105,7 +105,7 @@ contract Fund is FundWallet, Pausable {
 
     // @dev Simple constructor which only adds the owner
     // @param _owner Address of the owner of the fund
-    function Fund(address _owner) FundWallet( _owner)
+    constructor(address _owner) FundWallet( _owner)
         public
     {
     }
