@@ -40,7 +40,7 @@ contract FundWallet is Ownable {
     // @dev Checks if address_ is the zero address
     // @param _address Address to check
     modifier notNull(address _address) {
-        require(_address != 0);
+        require(_address != address(0));
         _;
     }
 
@@ -57,7 +57,7 @@ contract FundWallet is Ownable {
     // @dev Function which initiates a simple Ether transfer. It is adjusted to work well with Fund class
     // @param _to Address to which Ether is sent
     // @param _value Amount of wei sent
-    function sendEther(address _to, uint256 _value)
+    function sendEther(address payable _to, uint256 _value)
         public
         onlyOwnerOrInternal
         notNull(_to)
@@ -88,12 +88,12 @@ contract FundWallet is Ownable {
         require(_value > 0);
         // External call
         require(_token.transfer(_to, _value));
-        emit TokensSent(_token, _to, _value);
+        emit TokensSent(address(_token), _to, _value);
     }
 
     // @dev Default payable function which logs any Ether recieved
     function ()
-        public
+        external
         payable
     {
         emit Received(msg.sender, msg.value, address(this).balance);

@@ -119,14 +119,14 @@ contract FundOperator {
 
     // @dev Verifies the operator already has a fund added
     modifier hasFund() {
-        require(address(fund) != 0);
+        require(address(fund) != address(0));
         _;
     }
 
     // @dev Verifies an address is not the zero address
     // @param _address
     modifier notNull(address _address) {
-        require(_address != 0);
+        require(_address != address(0));
         _;
     }
 
@@ -146,13 +146,13 @@ contract FundOperator {
         require(_trustPartyThreshold <= _trustPartyAccounts.length);
 
         for (uint256 i = 0; i < _hotAccounts.length; i++) {
-            require(!isHotAccount[_hotAccounts[i]] && _hotAccounts[i] != 0);
+            require(!isHotAccount[_hotAccounts[i]] && _hotAccounts[i] != address(0));
             isHotAccount[_hotAccounts[i]] = true;
         }
 
-        for (i = 0; i < _trustPartyAccounts.length; i++) {
+        for (uint256 i = 0; i < _trustPartyAccounts.length; i++) {
             require(!isHotAccount[_trustPartyAccounts[i]]);
-            require(!isTrustPartyAccount[_trustPartyAccounts[i]] && _trustPartyAccounts[i] != 0);
+            require(!isTrustPartyAccount[_trustPartyAccounts[i]] && _trustPartyAccounts[i] != address(0));
             isTrustPartyAccount[_trustPartyAccounts[i]] = true;
         }
 
@@ -165,32 +165,32 @@ contract FundOperator {
     // @dev Adds the fund to be managed to the operator
     // Requires trust party to sign
     // @param _fund Address to the fund to be added/managed
-    function addFund(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, Fund _fund)
+    function addFund(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, Fund _fund)
         external
-        notNull(_fund)
+        notNull(address(_fund))
     {
-        require(address(fund) == 0);
-        bytes32 preHash = keccak256(this, uint256(Action.AddFund), _fund, nonce);
+        require(address(fund) == address(0));
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.AddFund), _fund, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         _verifyTrustPartyAction(_sigV, _sigR, _sigS, preHash);
         fund = _fund;
-        isHotWallet[fund] = true;
-        isTrustedWallet[fund] = true;
-        emit FundAdded(fund);
+        isHotWallet[address(fund)] = true;
+        isTrustedWallet[address(fund)] = true;
+        emit FundAdded(address(fund));
         nonce = nonce.add(1);
     }
 
     // @dev Adds the token to the fund managed by the operator
     // Requires trust party to sign
     // @param _token Address of the token to be added
-    function addToken(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, FundToken _token)
+    function addToken(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, FundToken _token)
         external
         hasFund
     {
-        bytes32 preHash = keccak256(this, uint256(Action.AddToken), _token, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.AddToken), _token, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         _verifyTrustPartyAction(_sigV, _sigR, _sigS, preHash);
-        emit FundTokenAuthorized(_token);
+        emit FundTokenAuthorized(address(_token));
         nonce = nonce.add(1);
         fund.addToken(_token);
     }
@@ -199,22 +199,22 @@ contract FundOperator {
     // Requires trust party to sign
     // @param _wallets Array of wallets to add to the fund
     // @param _hot Says whether the wallets added should be both hot and trusted or only trusted
-    function addTrustedWallets(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, FundWallet[] _wallets, bool _hot)
+    function addTrustedWallets(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, FundWallet[] calldata _wallets, bool _hot)
         external
         hasFund
     {
-        bytes32 preHash = keccak256(this, uint256(Action.AddTrustedWallets), _wallets, _hot, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.AddTrustedWallets), _wallets, _hot, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         _verifyTrustPartyAction(_sigV, _sigR, _sigS, preHash);
         for (uint256 i = 0; i < _wallets.length; i++) {
-            require(!isTrustedWallet[_wallets[i]]);
+            require(!isTrustedWallet[address(_wallets[i])]);
             require(_wallets[i].owner() == address(fund));
-            isTrustedWallet[_wallets[i]] = true;
-            emit TrustedWalletAdded(_wallets[i]);
+            isTrustedWallet[address(_wallets[i])] = true;
+            emit TrustedWalletAdded(address(_wallets[i]));
             if (_hot) {
-                isHotWallet[_wallets[i]] = true;
+                isHotWallet[address(_wallets[i])] = true;
                 hotWallets.push(_wallets[i]);
-                emit HotWalletAdded(_wallets[i]);
+                emit HotWalletAdded(address(_wallets[i]));
             }
         }
         nonce = nonce.add(1);
@@ -224,24 +224,24 @@ contract FundOperator {
     // Requires trsut party to sign
     // @param _wallet Address to the cold wallet to add
     // @param _key Address to the cold account needed to access the cold wallet at a later point
-    function addColdWallet(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, FundWallet _wallet, address _key)
+    function addColdWallet(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, FundWallet _wallet, address _key)
         external
-        notNull(_wallet)
+        notNull(address(_wallet))
     {
-        require(!isTrustedWallet[_wallet]);
+        require(!isTrustedWallet[address(_wallet)]);
         require(_wallet.owner() == address(fund));
-        bytes32 preHash = keccak256(this, uint256(Action.AddColdWallet), _wallet, _key, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.AddColdWallet), _wallet, _key, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         _verifyTrustPartyAction(_sigV, _sigR, _sigS, preHash);
 
-        isTrustedWallet[_wallet] = true;
+        isTrustedWallet[address(_wallet)] = true;
         coldWallets.push(_wallet);
-        coldStorage[_wallet] = _key;
+        coldStorage[address(_wallet)] = _key;
         coldAccounts.push(_key);
 
-        _verifyColdStorageAccess(_sigV[_sigV.length - 1], _sigR[_sigR.length - 1], _sigS[_sigS.length - 1], preHash, _wallet);
-        emit ColdWalletAdded(_wallet, _key);
-        emit TrustedWalletAdded(_wallet);
+        _verifyColdStorageAccess(_sigV[_sigV.length - 1], _sigR[_sigR.length - 1], _sigS[_sigS.length - 1], preHash, address(_wallet));
+        emit ColdWalletAdded(address(_wallet), _key);
+        emit TrustedWalletAdded(address(_wallet));
         nonce = nonce.add(1);
     }
 
@@ -253,7 +253,7 @@ contract FundOperator {
         internal
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 txHash = keccak256(prefix, _preHash);
+        bytes32 txHash = keccak256(abi.encodePacked(prefix, _preHash));
         address recovered = ecrecover(txHash, _sigV, _sigR, _sigS);
         require(coldStorage[_wallet] == recovered);
         emit ColdWalletAccessed(_wallet);
@@ -264,17 +264,17 @@ contract FundOperator {
     // signature arrays.
     // See test cases for an example on how the signatures can be generated correctly in Javascript
     // @param _preHash Hash to check the signatures against
-    function _verifyHotAction(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, bytes32 _preHash)
+    function _verifyHotAction(uint8[] memory _sigV, bytes32[] memory _sigR, bytes32[] memory _sigS, bytes32 _preHash)
         view
         internal
     {
         require(_sigV.length >= hotThreshold);
         require(_sigR.length == _sigS.length && _sigR.length == _sigV.length);
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 txHash = keccak256(prefix, _preHash);
+        bytes32 txHash = keccak256(abi.encodePacked(prefix, _preHash));
 
         // Loop is ensuring that there are no duplicates by checking the addresses are strictly increasing
-        address lastAdd = 0;
+        address lastAdd = address(0);
         for (uint256 i = 0; i < hotThreshold; i++) {
             address recovered = ecrecover(txHash, _sigV[i], _sigR[i], _sigS[i]);
             require(recovered > lastAdd);
@@ -287,17 +287,17 @@ contract FundOperator {
     // The trust party signatures have to be appended after the hot signatures.
     // See test cases for an example on how the signatures can be generated correctly in Javascript
     // @param _preHash Hash to check the signatures against
-    function _verifyTrustPartyAction(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, bytes32 _preHash)
+    function _verifyTrustPartyAction(uint8[] memory _sigV, bytes32[] memory _sigR, bytes32[] memory _sigS, bytes32 _preHash)
         view
         internal
     {
         require(_sigV.length >= hotThreshold.add(trustPartyThreshold));
         require(_sigR.length == _sigS.length && _sigR.length == _sigV.length);
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 txHash = keccak256(prefix, _preHash);
+        bytes32 txHash = keccak256(abi.encodePacked(prefix, _preHash));
 
         // Loop is ensuring that there are no duplicates by checking the addresses are strictly increasing
-        address lastAdd = 0;
+        address lastAdd = address(0);
         for (uint256 i = hotThreshold; i < hotThreshold + trustPartyThreshold; i++) {
             address recovered = ecrecover(txHash, _sigV[i], _sigR[i], _sigS[i]);
             require(recovered > lastAdd);
@@ -313,17 +313,17 @@ contract FundOperator {
     // @param _from Wallet to transfer funds from
     // @param _to Wallet to transfer funds to
     // @param _value Amount of either wei or tokens to send
-    function _verifyTransfer(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, bytes32 _preHash, FundWallet _from, address _to, uint256 _value)
+    function _verifyTransfer(uint8[] memory _sigV, bytes32[] memory _sigR, bytes32[] memory _sigS, bytes32 _preHash, FundWallet _from, address _to, uint256 _value)
         internal
     {
-        require(isHotWallet[_from] || coldStorage[_from] != 0);
+        require(isHotWallet[address(_from)] || coldStorage[address(_from)] != address(0));
         require(_value > 0);
         _verifyHotAction(_sigV, _sigR, _sigS, _preHash);
-        if (coldStorage[_from] != 0) {
+        if (coldStorage[address(_from)] != address(0)) {
             // Double length check for safety
             require(_sigR.length == _sigS.length && _sigR.length == _sigV.length);
             uint256 coldKeyPos = _sigV.length - 1;
-            _verifyColdStorageAccess(_sigV[coldKeyPos], _sigR[coldKeyPos], _sigS[coldKeyPos], _preHash, _from);
+            _verifyColdStorageAccess(_sigV[coldKeyPos], _sigR[coldKeyPos], _sigS[coldKeyPos], _preHash, address(_from));
         }
         if (!isTrustedWallet[_to]) {
             _verifyTrustPartyAction(_sigV, _sigR, _sigS, _preHash);
@@ -336,16 +336,16 @@ contract FundOperator {
     // @param _from Address from which the Ether is sent from
     // @param _to Address to which the Ether is sent
     // @param _value Amount of wei sent
-    function requestEtherTransfer(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, FundWallet _from, address _to, uint256 _value)
+    function requestEtherTransfer(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, FundWallet _from, address payable _to, uint256 _value)
         external
         hasFund
     {
-        bytes32 preHash = keccak256(this, uint256(Action.EtherTransfer), _from, _to, _value, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.EtherTransfer), _from, _to, _value, nonce));
         _verifyTransfer(_sigV, _sigR, _sigS, preHash, _from, _to, _value);
 
         // Triggers external call
         fund.moveEther(FundWallet(_from), _to, _value);
-        emit EtherTransferAuthorized(_from, _to, _value);
+        emit EtherTransferAuthorized(address(_from), _to, _value);
     }
 
     // @dev Authorizes a token transfer between two wallets
@@ -354,28 +354,28 @@ contract FundOperator {
     // @param _from Address from which tokens are sent from
     // @param _to Address to which the tokens are sent to
     // @param _value Amount of tokens sent
-    function requestTokenTransfer(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, ERC20 _token, FundWallet _from, address _to, uint256 _value)
+    function requestTokenTransfer(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, ERC20 _token, FundWallet _from, address _to, uint256 _value)
         external
         hasFund
     {
-        bytes32 preHash = keccak256(this, int256(Action.TokenTransfer), _token, _from, _to, _value, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, int256(Action.TokenTransfer), _token, _from, _to, _value, nonce));
         _verifyTransfer(_sigV, _sigR, _sigS, preHash, _from, _to, _value);
 
         // Triggers external call
         fund.moveTokens(_token, _from, _to, _value);
-        emit TokenTransferAuthorized(address(_token), _from, _to, _value);
+        emit TokenTransferAuthorized(address(_token), address(_from), _to, _value);
     }
 
     // @dev Authorizes the fund to update the price for a token/share
     // @param _numerator Numerator for the new price
     // @param _denominator Denominator for the new price
-    function requestPriceUpdate(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, uint256 _numerator, uint256 _denominator)
+    function requestPriceUpdate(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, uint256 _numerator, uint256 _denominator)
         external
         hasFund
     {
         // Double check to fail fast
         require(_numerator != 0 && _denominator != 0);
-        bytes32 preHash = keccak256(this, uint256(Action.PriceUpdate), _numerator, _denominator, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.PriceUpdate), _numerator, _denominator, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         nonce = nonce.add(1);
         fund.updatePrice(_numerator, _denominator);
@@ -384,11 +384,11 @@ contract FundOperator {
 
     // @dev Authorizes the pausing or unpausing of the fund
     // @param _pause If true the fund will be paused, if false the fund will be unpaused.
-    function requestPause(uint8[] _sigV, bytes32[] _sigR, bytes32[] _sigS, bool _pause)
+    function requestPause(uint8[] calldata _sigV, bytes32[] calldata _sigR, bytes32[] calldata _sigS, bool _pause)
         external
         hasFund
     {
-        bytes32 preHash = keccak256(this, uint256(Action.Pause), _pause, nonce);
+        bytes32 preHash = keccak256(abi.encodePacked(this, uint256(Action.Pause), _pause, nonce));
         _verifyHotAction(_sigV, _sigR, _sigS, preHash);
         nonce = nonce.add(1);
         if (_pause) {

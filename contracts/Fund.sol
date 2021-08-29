@@ -115,9 +115,9 @@ contract Fund is FundWallet, Pausable {
     function addToken(FundToken _token)
         public
         onlyOwner
-        notNull(_token)
+        notNull(address(_token))
     {
-        require(token == address(0));
+        require(address(token) == address(0));
         token = _token;
         emit FundTokenAdded(address(token));
     }
@@ -129,7 +129,7 @@ contract Fund is FundWallet, Pausable {
     // Purposely no withdrawal pattern was implemented because the use case is simple enough here IMO
     // @param _to Address to which the Ether received in exchange for the tokens is sent to
     // @param _value Amount of tokens to withdrawn/sold
-    function withdrawTo(address _to, uint256 _value)
+    function withdrawTo(address payable _to, uint256 _value)
         external
         hasToken
         whenNotPaused
@@ -192,19 +192,19 @@ contract Fund is FundWallet, Pausable {
         onlyOwner
     {
         _from.sendTokens(_token, _to, _value);
-        emit TokensMoved(address(_token), _from, _to, _value);
+        emit TokensMoved(address(_token), address(_from), _to, _value);
     }
 
     // @dev Initiates an Ether transfer between two wallets
     // @param _from Address from which the Ether is sent from
     // @param _to Address to which the Ether is sent
     // @param _value Amount of wei sent
-    function moveEther(FundWallet _from, address _to, uint256 _value)
+    function moveEther(FundWallet _from, address payable _to, uint256 _value)
         public
         onlyOwner
     {
         _from.sendEther(_to, _value);
-        emit EtherMoved(_from, _to, _value);
+        emit EtherMoved(address(_from), _to, _value);
     }
 
     // @dev Payable function which is used to add funds.
@@ -217,7 +217,7 @@ contract Fund is FundWallet, Pausable {
     // @dev Payable function which automatically initiates the purchase process for the sender
     // This functionality is implement to be more user-friendly and make the purchase process easier.
     function ()
-        public
+        external
         payable
     {
         buyTo(msg.sender);
